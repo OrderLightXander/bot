@@ -40,11 +40,12 @@ def predict_resource(screenshot):
     img = cv2.resize(img, (128, 128))
     img = np.expand_dims(img, axis=-1)
     img = img / 255.0
+    img = img.astype(np.uint8)  # convert data type to uint8
     prediction = model.predict(np.array([img]))
     resource = resources[np.argmax(prediction)]
     print(f'Resource: {resource}')
     # Convert the image to binary format and find the contours of the predicted resource
-    gray = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    gray = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)  # convert back to BGR
     ret, thresh = cv2.threshold(gray, 127, 255, 0)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for c in contours:

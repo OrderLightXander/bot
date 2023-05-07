@@ -55,6 +55,7 @@ def save_corrected_image(screenshot, correct_resource):
 
 # Define the function to predict the resource in a scryeenshot and display a rectangle around the predicted resource
 def predict_resource(screenshot):
+    
     img = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
     img = cv2.resize(img, (128, 128))
     img = np.expand_dims(img, axis=-1)

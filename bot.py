@@ -46,12 +46,14 @@ def predict_resource(screenshot):
     print(f'Resource: {resource}')
     # Convert the image to binary format and find the contours of the predicted resource
     gray = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)  # convert back to BGR
+    gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)  # convert BGR to grayscale
     ret, thresh = cv2.threshold(gray, 127, 255, 0)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
         cv2.rectangle(screenshot, (x, y), (x+w, y+h), (0, 255, 0), 2)
     return screenshot
+
 
 # Take a screenshot when the "p" key is pressed and predict the resource in the screenshot
 def on_press():

@@ -41,7 +41,7 @@ def save_corrected_image(img, correct_resource):
     cv2.imwrite(f"./{correct_resource}/{filename}", img)
     print(f"Corrected image saved as {filename}")
 
-# Define the function to predict the resource in a screenshot and display a rectangle around the predicted resource
+# Define the function to predict the resource in a scryeenshot and display a rectangle around the predicted resource
 def predict_resource(screenshot):
     img = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
     img = cv2.resize(img, (128, 128))

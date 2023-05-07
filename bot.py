@@ -65,6 +65,8 @@ def predict_resource(screenshot):
 # Take a screenshot when the "p" key is pressed and predict the resource in the screenshot
 # Modified on_press function
 def on_press():
+    global X_train, y_train  # Add this line to access X_train and y_train within this function
+
     print('Taking screenshot...')
     screenshot = np.array(ImageGrab.grab())
     predicted_screenshot = predict_resource(screenshot)
@@ -90,7 +92,9 @@ def on_press():
 
         # Save the updated model
         model.save("updated_model.h5")
+
     print("Press 'p' to take another screenshot or 'q' to quit.")
+
 
 cv2.namedWindow('Screenshot')
 while True:

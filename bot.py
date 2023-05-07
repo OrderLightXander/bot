@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import keyboard
+import os
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 from keras.utils import to_categorical
@@ -34,6 +35,12 @@ model.add(Dense(len(resources), activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.fit(X_train, y_train, epochs=10, batch_size=32)
 
+# Additional function to save the image with the correct resource label
+def save_corrected_image(img, correct_resource):
+    filename = f"{correct_resource}_{len(os.listdir(f'./{correct_resource}')) + 1}.png"
+    cv2.imwrite(f"./{correct_resource}/{filename}", img)
+    print(f"Corrected image saved as {filename}")
+
 # Define the function to predict the resource in a screenshot and display a rectangle around the predicted resource
 def predict_resource(screenshot):
     img = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
@@ -56,11 +63,34 @@ def predict_resource(screenshot):
 
 
 # Take a screenshot when the "p" key is pressed and predict the resource in the screenshot
+# Modified on_press function
 def on_press():
-    print('reallyp')
+    print('Taking screenshot...')
     screenshot = np.array(ImageGrab.grab())
     predicted_screenshot = predict_resource(screenshot)
     cv2.imshow('Screenshot', predicted_screenshot)
+    
+    # Save the screenshot with the rectangle around the resource
+    filename = f"screenshot_{len(os.listdir('./screenshots')) + 1}.png"
+    cv2.imwrite(f"./screenshots/{filename}", predicted_screenshot)
+    
+    # Display the saved image and ask the user for input
+    print(f"Is the prediction correct? (y/n)")
+    user_input = input()
+    if user_input.lower() == "n":
+        print("What is the correct resource?")
+        correct_resource = input().strip().lower()
+        save_corrected_image(predicted_screenshot, correct_resource)
+
+        # Retrain the model with the new image
+        img = cv2.imread(f"./{correct_resource}/{filename}", cv2.IMREAD_GRAYSCALE)
+        X_train = np.append(X_train, [img], axis=0)
+        y_train = np.append(y_train, to_categorical(resources.index(correct_resource), num_classes=len(resources)))
+        model.fit(X_train, y_train, epochs=1, batch_size=32)
+
+        # Save the updated model
+        model.save("updated_model.h5")
+    print("Press 'p' to take another screenshot or 'q' to quit.")
 
 cv2.namedWindow('Screenshot')
 while True:

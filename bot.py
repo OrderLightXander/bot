@@ -97,7 +97,7 @@ def on_press():
         img = cv2.resize(img, (128, 128))  # Resize the image
         img = img.reshape(128, 128, 1)  # Add the channel dimension
         X_train = np.append(X_train, img[np.newaxis, :], axis=0)
-        y_train = np.append(y_train, to_categorical(resources.index(correct_resource), num_classes=len(resources)))
+        y_train = np.append(y_train, to_categorical(resources.index(correct_resource), num_classes=len(resources))[np.newaxis, :], axis=0)
         model.fit(X_train, y_train, epochs=1, batch_size=32)
 
         # Save the updated model

@@ -37,14 +37,21 @@ model.fit(X_train, y_train, epochs=10, batch_size=32)
 
 # Additional function to save the image with the correct resource label
 def save_corrected_image(screenshot, correct_resource):
-    if not os.path.exists(f"./{correct_resource}"):
-        os.makedirs(f"./{correct_resource}")
+    img = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
+    img = cv2.resize(img, (128, 128))
+    ret, thresh = cv2.threshold(img, 127, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        cv2.rectangle(screenshot, (x, y), (x + w, y + h), (0, 255, 0), 4)  # Change thickness to 4
+    if not os.path.exists(f'./{correct_resource}'):
+        os.makedirs(f'./{correct_resource}')
+    filename = f"{correct_resource}_{len(os.listdir(f'./{correct_resource}')) + 1}.png"
+    cv2.imwrite(f"./{correct_resource}/{filename}", screenshot)
+    print(f"Corrected image saved as {filename}")
+    return filename
 
-    corrected_filename = f"{correct_resource}_{len(os.listdir(f'./{correct_resource}')) + 1}.png"
-    cv2.imwrite(f"./{correct_resource}/{corrected_filename}", screenshot)
-    print(f"Corrected image saved as {corrected_filename}")
 
-    return corrected_filename  # Return the corrected filename
 
 # Define the function to predict the resource in a scryeenshot and display a rectangle around the predicted resource
 def predict_resource(screenshot):

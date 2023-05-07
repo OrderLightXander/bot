@@ -20,7 +20,7 @@ for resource in resources:
         y_train.append(resources.index(resource))
 
 # Convert the training data to numpy arrays and normalize the pixel values
-X_train = np.array(X_train) / 255.0
+X_train = np.array(X_train).reshape(-1, 128, 128, 1) / 255.0
 y_train = to_categorical(y_train)
 
 # Define the neural network model
@@ -36,10 +36,15 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 model.fit(X_train, y_train, epochs=10, batch_size=32)
 
 # Additional function to save the image with the correct resource label
-def save_corrected_image(img, correct_resource):
-    filename = f"{correct_resource}_{len(os.listdir(f'./{correct_resource}')) + 1}.png"
-    cv2.imwrite(f"./{correct_resource}/{filename}", img)
-    print(f"Corrected image saved as {filename}")
+def save_corrected_image(screenshot, correct_resource):
+    if not os.path.exists(f"./{correct_resource}"):
+        os.makedirs(f"./{correct_resource}")
+
+    corrected_filename = f"{correct_resource}_{len(os.listdir(f'./{correct_resource}')) + 1}.png"
+    cv2.imwrite(f"./{correct_resource}/{corrected_filename}", screenshot)
+    print(f"Corrected image saved as {corrected_filename}")
+
+    return corrected_filename  # Return the corrected filename
 
 # Define the function to predict the resource in a scryeenshot and display a rectangle around the predicted resource
 def predict_resource(screenshot):
@@ -62,10 +67,11 @@ def predict_resource(screenshot):
     return screenshot
 
 
+
 # Take a screenshot when the "p" key is pressed and predict the resource in the screenshot
 # Modified on_press function
 def on_press():
-    global X_train, y_train  # Add this line to access X_train and y_train within this function
+    global X_train, y_train
 
     print('Taking screenshot...')
     screenshot = np.array(ImageGrab.grab())
@@ -82,11 +88,15 @@ def on_press():
     if user_input.lower() == "n":
         print("What is the correct resource?")
         correct_resource = input().strip().lower()
-        save_corrected_image(predicted_screenshot, correct_resource)
+        corrected_filename = save_corrected_image(predicted_screenshot, correct_resource)
 
         # Retrain the model with the new image
-        img = cv2.imread(f"./{correct_resource}/{filename}", cv2.IMREAD_GRAYSCALE)
-        X_train = np.append(X_train, [img], axis=0)
+        img_path = f"./{correct_resource}/{corrected_filename}"
+        print(f"Loading image from: {img_path}")
+        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        img = cv2.resize(img, (128, 128))  # Resize the image
+        img = img.reshape(128, 128, 1)  # Add the channel dimension
+        X_train = np.append(X_train, img[np.newaxis, :], axis=0)
         y_train = np.append(y_train, to_categorical(resources.index(correct_resource), num_classes=len(resources)))
         model.fit(X_train, y_train, epochs=1, batch_size=32)
 
@@ -94,6 +104,13 @@ def on_press():
         model.save("updated_model.h5")
 
     print("Press 'p' to take another screenshot or 'q' to quit.")
+
+
+
+
+
+
+
 
 
 cv2.namedWindow('Screenshot')
